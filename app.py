@@ -17,6 +17,12 @@ DATASET_FOLDER = "dataset"
 
 # Function to download images from a Google Sheet
 def download_images_from_sheet(sheet_id, output_folder):
+    # Check if the folder already contains images
+    if os.path.exists(output_folder) and len(os.listdir(output_folder)) > 0:
+        st.write("Images already downloaded. Skipping download.")
+        return
+
+    # Create the folder if it doesn't exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -40,6 +46,7 @@ def download_images_from_sheet(sheet_id, output_folder):
                 st.warning(f"Failed to download: {link}")
         except Exception as e:
             st.error(f"Error downloading {link}: {e}")
+
 
 # Function to extract features using VGG16
 def extract_features(img_path):
