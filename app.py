@@ -2,6 +2,7 @@ import os
 import requests
 import numpy as np
 import pandas as pd
+import zipfile
 import cv2
 from sklearn.metrics.pairwise import cosine_similarity
 from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
@@ -15,37 +16,13 @@ st.title("Image Similarity Finder")
 # Define constants
 DATASET_FOLDER = "dataset"
 
-# Function to download images from a Google Sheet
-def download_images_from_sheet(sheet_id, output_folder):
-    # Check if the folder already contains images
-    if os.path.exists(output_folder) and len(os.listdir(output_folder)) > 0:
-        st.write("Images already downloaded. Skipping download.")
-        return
-
-    # Create the folder if it doesn't exist
+# Function to extract uploaded ZIP file
+def extract_uploaded_dataset(uploaded_file, output_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-
-    # Load Google Sheet as a DataFrame
-    sheet_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
-    df = pd.read_csv(sheet_url)
-
-    # Extract image links from the second column (adjust if necessary)
-    image_links = df.iloc[:, 1].dropna()
-
-    for idx, link in enumerate(image_links, 1):
-        try:
-            response = requests.get(link, stream=True)
-            if response.status_code == 200:
-                file_path = os.path.join(output_folder, f'image_{idx}.jpg')
-                with open(file_path, 'wb') as file:
-                    for chunk in response.iter_content(1024):
-                        file.write(chunk)
-                st.write(f"Downloaded: {file_path}")
-            else:
-                st.warning(f"Failed to download: {link}")
-        except Exception as e:
-            st.error(f"Error downloading {link}: {e}")
+    with zipfile.ZipFile(uploaded_file, 'r') as zip_ref:
+        zip_ref.extractall(output_folder)
+    st.write(f"Dataset extracted to {output_folder}")
 
 
 # Function to extract features using VGG16
